@@ -16,6 +16,14 @@ This is the backend API for the Smart Lead Prioritizer tool. It provides endpoin
   pip install -r requirements.txt
   ```
 
+## Environment Variables
+- Copy `.env_example` to `.env` and fill in your configuration:
+  ```bash
+  cp .env_example .env
+  # Edit .env and set your API_KEY or other secrets
+  ```
+- The backend will automatically load variables from `.env` using python-dotenv.
+
 ## Running the Server
 Start the FastAPI server with Uvicorn:
 ```bash

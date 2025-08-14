@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import Papa from 'papaparse';
-import '../style/LeadUpload.css';
 import StarIcon from '@mui/icons-material/Star';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
@@ -15,12 +14,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import OutlinedInput from '@mui/material/OutlinedInput';
+import { validateLeads } from '../utils/csvUtils';
+import '../style/LeadUpload.css';
 
 interface Lead {
   [key: string]: string;
 }
 
-const API_URL = 'http://127.0.0.1:8000/enrich-leads';
+const API_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/enrich-leads';
 
 const columns = [
   { key: 'Name', label: 'Name' },
@@ -56,14 +57,6 @@ const LeadUpload: React.FC = () => {
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const validateLeads = (leads: Lead[]) => {
-    const invalid: number[] = [];
-    leads.forEach((lead, idx) => {
-      if (!lead.Email || !lead.Name || !lead.Company) invalid.push(idx);
-    });
-    setInvalidRows(invalid);
-  };
-
   const handleFile = async (file: File) => {
     // Send file to FastAPI backend
     const formData = new FormData();
@@ -77,7 +70,7 @@ const LeadUpload: React.FC = () => {
       const data = await response.json();
       setLeads(data.leads);
       setError(null);
-      validateLeads(data.leads);
+      setInvalidRows(validateLeads(data.leads));
     } catch (err: any) {
       setError(err.message || 'Error uploading file.');
       setLeads([]);
@@ -91,6 +84,7 @@ const LeadUpload: React.FC = () => {
       setError('Only CSV files are allowed.');
       return;
     }
+    // Always send file to backend for enrichment
     handleFile(file);
   };
 

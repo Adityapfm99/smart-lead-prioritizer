@@ -2,6 +2,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import LeadUpload from './components/LeadUpload';
 import './style/App.css';
+import './style/index.css';
 import './style/Header.css';
 import './style/LeadUpload.css';
 

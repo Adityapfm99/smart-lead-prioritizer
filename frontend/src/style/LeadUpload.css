@@ -208,3 +208,39 @@ input[type="file"] {
   cursor: pointer;
   font-weight: 500;
 }
+
+.bar-chart {
+  width: 100%;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.bar-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.bar-label {
+  min-width: 90px;
+  font-weight: 600;
+}
+.bar-outer {
+  flex: 1;
+  background: #e3f0ff;
+  border-radius: 8px;
+  height: 22px;
+  margin: 0 12px;
+  position: relative;
+}
+.bar-inner {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 8px;
+  transition: width 0.3s;
+}
+.bar-count {
+  position: absolute;
+  right: 8px;
+  top: 2px;
+  color: #222e3c;
+  font-weight: 700;
+}
