@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+ENV/
+.env
+
+# Editor/OS files
+.DS_Store
+*.swp
+*.swo
+
+# Test and example data
+example/*.csv
