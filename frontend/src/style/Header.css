@@ -1,0 +1,32 @@
+/* Header.css */
+.custom-header {
+  background: #373f4a;
+  padding: 60px 0 24px 0;
+  text-align: center;
+}
+
+.custom-title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.highlight {
+  background: #a4c8f0;
+  color: #222e3c;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: 1.9rem;
+  box-shadow: 0 1px 4px rgba(164,200,240,0.15);
+}
+
+.custom-subtitle {
+  color: #bfc7d5;
+  font-size: 1.1rem;
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-weight: 400;
+}
