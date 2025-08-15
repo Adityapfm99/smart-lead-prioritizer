@@ -252,9 +252,12 @@ const LeadUpload: React.FC = () => {
 
   // Export to CSV
   const handleExport = () => {
-    let exportLeads = bulkSelect.length > 0
-      ? bulkSelect.map(idx => sortedLeads[idx]).filter(Boolean)
-      : sortedLeads;
+    let exportLeads;
+    if (bulkSelect.length > 0) {
+      exportLeads = bulkSelect.map(idx => leads[idx]).filter(Boolean);
+    } else {
+      exportLeads = sortedLeads;
+    }
     if (exportLeads.length === 0) {
       setError('No leads match the current filter.');
       return;
