@@ -25,7 +25,11 @@ This is the backend API for the Smart Lead Prioritizer tool. It provides endpoin
 - The backend will automatically load variables from `.env` using python-dotenv.
 
 ## Running the Server
-Start the FastAPI server with Uvicorn:
+To run the FastAPI server, first navigate to the backend folder:
+```bash
+cd backend
+```
+Then start the server with Uvicorn:
 ```bash
 uvicorn main:app --reload
 ```

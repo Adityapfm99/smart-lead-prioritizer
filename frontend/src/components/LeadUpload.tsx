@@ -177,14 +177,37 @@ const LeadUpload: React.FC = () => {
 
   const handleEditSave = (idx: number) => {
     if (editIdx !== null && editKey) {
-      const updated = [...leads];
-      updated[idx][editKey] = editValue;
+      // Find the index in the original leads array, not sortedLeads
+      const updated = leads.map((lead, i) => {
+        if (i === editIdx) {
+          const newLead = { ...lead, [editKey]: editValue };
+          return enrichLeadLocal(newLead);
+        }
+        return lead;
+      });
       setLeads(updated);
       setEditIdx(null);
       setEditKey(null);
       setEditValue('');
+      alert('Update successfully!');
     }
   };
+
+  // Local enrichment function (mock, similar to backend)
+  function enrichLeadLocal(lead: Lead): Lead {
+    const newLead = { ...lead };
+    newLead['linkedin'] = `linkedin.com/in/${(newLead['Name'] || '').replace(/\s+/g, '').toLowerCase()}`;
+    newLead['companySize'] = ['1-10', '11-50', '51-200', '201-500', '500+'][Math.abs((newLead['Name'] || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 5];
+    newLead['industry'] = ['SaaS', 'Finance', 'Healthcare', 'Retail', 'Education'][Math.abs((newLead['Email'] || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 5];
+    newLead['emailValid'] = /[^@]+@[^@]+\.[^@]+/.test(newLead['Email'] || '') ? 'true' : 'false';
+    let score = 0;
+    if (newLead['emailValid'] === 'true') score += 10;
+    if (newLead['industry'] === 'SaaS') score += 10;
+    if (newLead['companySize'] === '500+') score += 5;
+    if (newLead['Title'] && ['director', 'vp', 'chief', 'head'].some(t => newLead['Title'].toLowerCase().includes(t))) score += 10;
+    newLead['score'] = String(score);
+    return newLead;
+  }
 
   const handleEditCancel = () => {
     setEditIdx(null);
@@ -366,12 +389,38 @@ const LeadUpload: React.FC = () => {
               )}
               label="Industry"
               sx={{ minWidth: 320 }}
+              MenuProps={{ PaperProps: { style: { minWidth: 320 } } }}
             >
-              <MenuItem value="clear">
-                <span style={{color: '#e53e3e', fontWeight: 600}}>✕ Clear</span>
+              <MenuItem disableRipple style={{ display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid #e2e8f0', paddingBottom: 8 }}>
+                <span
+                  style={{ color: '#2563eb', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setFilter(industryOptions.map(opt => opt.toLowerCase()).join(','));
+                  }}
+                >
+                  <span style={{fontSize: '1.2em'}}>＋</span> Select All
+                </span>
+                <span
+                  style={{ color: '#e53e3e', fontWeight: 600, cursor: 'pointer', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    setFilter('all');
+                  }}
+                >
+                  <DeleteIcon style={{fontSize: '1.2em'}} /> Clear All
+                </span>
               </MenuItem>
               {industryOptions.map(opt => (
-                <MenuItem key={opt} value={opt.toLowerCase()}>{opt}</MenuItem>
+                <MenuItem key={opt} value={opt.toLowerCase()} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={multiIndustry.includes(opt.toLowerCase())}
+                    readOnly
+                    style={{ marginRight: 8 }}
+                  />
+                  {opt}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -468,51 +517,54 @@ const LeadUpload: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {sortedLeads.map((lead, idx) => (
-                <tr key={idx} className={Number(lead.score) >= 20 ? 'top-lead' : invalidRows.includes(idx) ? 'invalid-row' : ''}>
-                  <td>
-                    <input type="checkbox" checked={bulkSelect.includes(idx)} onChange={e => {
-                      if (e.target.checked) setBulkSelect([...bulkSelect, idx]);
-                      else setBulkSelect(bulkSelect.filter(i => i !== idx));
-                    }} />
-                  </td>
-                  {columns.map(col => (
-                    <td key={col.key} onDoubleClick={() => handleEdit(idx, col.key, lead[col.key] || '')}>
-                      {editIdx === idx && editKey === col.key ? (
-                        <>
-                          <input
-                            type="text"
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
-                            onBlur={() => handleEditSave(idx)}
-                            autoFocus
-                            className="edit-input"
-                          />
-                          <button className="edit-btn" onClick={() => handleEditSave(idx)}>Save</button>
-                          <button className="edit-btn" onClick={handleEditCancel}>Cancel</button>
-                        </>
-                      ) : col.key === 'Email' ? (
-                        <>
-                          {lead.Email}
-                          <span className={`badge ${lead.emailValid === 'true' ? 'badge-valid' : 'badge-invalid'}`}>{lead.emailValid === 'true' ? 'Valid' : 'Invalid'}</span>
-                        </>
-                      ) : col.key === 'industry' ? (
-                        <span className="badge badge-industry">{lead.industry}</span>
-                      ) : col.key === 'score' ? (
-                        <>
-                          {Number(lead.score) >= 20 ? <StarIcon className="star-icon" titleAccess="Top scoring lead" /> : null}
-                          {lead.score}
-                        </>
-                      ) : (
-                        lead[col.key]
-                      )}
+              {sortedLeads.map((lead, idx) => {
+                const originalIdx = leads.findIndex(l => l === lead);
+                return (
+                  <tr key={idx} className={Number(lead.score) >= 20 ? 'top-lead' : invalidRows.includes(originalIdx) ? 'invalid-row' : ''}>
+                    <td>
+                      <input type="checkbox" checked={bulkSelect.includes(originalIdx)} onChange={e => {
+                        if (e.target.checked) setBulkSelect([...bulkSelect, originalIdx]);
+                        else setBulkSelect(bulkSelect.filter(i => i !== originalIdx));
+                      }} />
                     </td>
-                  ))}
-                  <td>
-                    <button className="row-action-btn" title="Delete lead" onClick={() => handleDelete(idx)}><DeleteIcon /></button>
-                  </td>
-                </tr>
-              ))}
+                    {columns.map(col => (
+                      <td key={col.key} onDoubleClick={() => handleEdit(originalIdx, col.key, lead[col.key] || '')}>
+                        {editIdx === originalIdx && editKey === col.key ? (
+                          <>
+                            <input
+                              type="text"
+                              value={editValue}
+                              onChange={e => setEditValue(e.target.value)}
+                              onBlur={() => handleEditSave(originalIdx)}
+                              autoFocus
+                              className="edit-input"
+                            />
+                            <button className="edit-btn" onClick={() => handleEditSave(originalIdx)}>Save</button>
+                            <button className="edit-btn" onClick={handleEditCancel}>Cancel</button>
+                          </>
+                        ) : col.key === 'Email' ? (
+                          <>
+                            {lead.Email}
+                            <span className={`badge ${lead.emailValid === 'true' ? 'badge-valid' : 'badge-invalid'}`}>{lead.emailValid === 'true' ? 'Valid' : 'Invalid'}</span>
+                          </>
+                        ) : col.key === 'industry' ? (
+                          <span className="badge badge-industry">{lead.industry}</span>
+                        ) : col.key === 'score' ? (
+                          <>
+                            {Number(lead.score) >= 20 ? <StarIcon className="star-icon" titleAccess="Top scoring lead" /> : null}
+                            {lead.score}
+                          </>
+                        ) : (
+                          lead[col.key]
+                        )}
+                      </td>
+                    ))}
+                    <td>
+                      <button className="row-action-btn" title="Delete lead" onClick={() => handleDelete(originalIdx)}><DeleteIcon /></button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
